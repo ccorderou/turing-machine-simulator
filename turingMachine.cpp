@@ -43,15 +43,65 @@ int main()
     //  3) or a 5-tuple consisting of currentState currentTapeSymbol newState newTapeSymbol direction
     std::string fileLine{};
     TuringMachine simulator;
+    bool isFiveTuple{false};
     while (std::getline(inputFile, fileLine))
     {
         // if a line begins with an integer, it must be a transition function
         if (std::isdigit(fileLine[0]))
+            isFiveTuple = true;
+
+        // /currentState currentTapeSymbol newState newTapeSymbol direction
+        if (isFiveTuple)
         {
             if (!contains(simulator.states, std::string(1, fileLine[0])))
                 simulator.states.push_back(std::string(1, fileLine[0]));
+            if (!contains(simulator.tapeSymbols, std::string(1, fileLine[2])))
+                simulator.tapeSymbols.push_back(std::string(1, fileLine[2]));
+
+            std::string stateWithSymbol{};
+            stateWithSymbol += fileLine[0];
+            stateWithSymbol += fileLine[2];
+
+            std::string move{};
+            move += fileLine[4];
+            move += fileLine[6];
+            move += fileLine[8];
+            simulator.transitionFunction[stateWithSymbol] = move;
+
+            // reset isFiveTuple variable
+            isFiveTuple = false;
         }
     }
+
+    std::cout << "THE STATES ARE: " << std::endl;
+    for (int i{0}; i < simulator.states.size(); i++)
+    {
+        std::cout << '\t' << simulator.states[i] << std::endl;
+    }
+
+    std::cout << std::endl;
+
+    std::cout << "THE TAPE SYMBOLS ARE: " << std::endl;
+    for (int i{0}; i < simulator.tapeSymbols.size(); i++)
+    {
+        std::cout << '\t' << simulator.tapeSymbols[i] << std::endl;
+    }
+
+    std::cout << std::endl;
+
+    for (auto it{simulator.transitionFunction.begin()}; it != simulator.transitionFunction.end(); it++)
+    {
+        std::cout << "Key-Value Pair:" << std::endl;
+        std::cout << '\t' << "Key:" << it->first;
+        std::cout << '\t' << "Value:" << it->second;
+        std::cout << std::endl;
+    }
+
+    std::cout << std::endl;
+
+    std::cout << simulator.transitionFunction.size() << std::endl;
+
+    return 0;
 }
 
 bool contains(const std::vector<std::string> container, const std::string &letter_val)
