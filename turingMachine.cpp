@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cctype>
+#include <list>
 
 /**
     @param: Takes in the current state and current symbol
@@ -13,15 +14,15 @@
 
 struct TuringMachine
 {
-    std::vector<std::string> states;
+    std::vector<std::string> states{"f"};
     std::string inputSymbols[2] = {"0", "1"};
     std::vector<std::string> tapeSymbols;
     std::unordered_map<std::string, std::string> transitionFunction;
     // std::string transitionFunction(std::string currentState, std::string currentTypeSymbol);
-    std::string startState = "q0";
-    std::string blankSymbol = "B";
-    std::vector<std::string> acceptingStates;
-    std::vector<std::string> tape;
+    // std::string startState = "q0";
+    // std::string blankSymbol = "B";
+    // std::vector<std::string> acceptingStates;
+    std::list<std::string> tape;
     // helper function to print contents of simulator for debugging purposes
     void display();
 };
@@ -74,8 +75,31 @@ int main()
             isFiveTuple = false;
         }
     }
+    std::cout << "Enter an input word: ";
+    std::string userInput{};
+    // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+    std::getline(std::cin, userInput);
+    std::string blank{"B"};
 
-    //simulator.display();
+    // I am going to place two preceding blanks in the front
+    // and two trailing blanks in the back
+    simulator.tape.push_back(blank);
+    simulator.tape.push_back(blank);
+    for (const auto &letter : userInput)
+        simulator.tape.push_back(std::string(1, letter));
+    simulator.tape.push_back(blank);
+    simulator.tape.push_back(blank);
+
+    auto finite_control = simulator.tape.begin();
+
+    while (*finite_control == "B")
+    {
+        finite_control++;
+    }
+
+    //std::cout << "BEGINNING WITH THE FIRST INPUT SYMBOL: " << *finite_control << std::endl;
+    
+    simulator.display();
 
     return 0;
 }
@@ -117,4 +141,13 @@ void TuringMachine::display()
     std::cout << std::endl;
 
     std::cout << "Number of transition functions: " << transitionFunction.size() << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << "THE CURRENT SYMBOLS ON THE TAPE: " << std::endl;
+
+    for (auto it{tape.begin()}; it != tape.end(); it++)
+    {
+        std::cout << *it << " ";
+    }
 }
