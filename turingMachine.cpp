@@ -82,6 +82,24 @@ int main()
     std::string userInput{};
     // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
     std::getline(std::cin, userInput);
+
+    bool repromptInput{false};
+    for (const auto &letter : userInput)
+        if (letter != '0' && letter != '1')
+            repromptInput = true;
+
+    while (repromptInput)
+    {
+        std::cout << "Input must only contain 0s and/or 1s: ";
+        std::string userInput{};
+        // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+        std::getline(std::cin, userInput);
+        repromptInput = false;
+        for (const auto &letter : userInput)
+            if (letter != '0' && letter != '1')
+                repromptInput = true;
+    }
+
     std::string blank{"B"};
 
     // I am going to place two preceding blanks in the front
