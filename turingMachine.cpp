@@ -30,6 +30,9 @@ struct TuringMachine
 // helper function to reduce redundancies
 bool contains(const std::vector<std::string> container, const std::string &letter);
 
+// helper function to output IDs
+void printInstantaneousDescription(std::list<std::string>::iterator start, std::list<std::string>::iterator curr, std::string currentState);
+
 int main()
 {
 
@@ -90,15 +93,41 @@ int main()
     simulator.tape.push_back(blank);
     simulator.tape.push_back(blank);
 
-    auto finite_control = simulator.tape.begin();
+    auto finiteControl = simulator.tape.begin();
 
-    while (*finite_control == "B")
+    while (*finiteControl == "B")
     {
-        finite_control++;
+        finiteControl++;
     }
 
-    //std::cout << "BEGINNING WITH THE FIRST INPUT SYMBOL: " << *finite_control << std::endl;
-    
+    // std::cout << "BEGINNING WITH THE FIRST INPUT SYMBOL: " << *finite_control << std::endl;
+    std::string currentState{"0"};
+    bool isAccepting{false};
+    auto startingPosition = finiteControl;
+    while (!isAccepting)
+    {
+
+        // print the ID
+        printInstantaneousDescription(startingPosition, finiteControl, currentState);
+
+        // perform computation
+        std::string currentStateAndContent{currentState + *finiteControl};
+        std::string move = simulator.transitionFunction[currentStateAndContent];
+
+        currentState = move[0];
+        *finiteControl = move[1];
+        if (move[2] == 'L')
+            finiteControl--;
+        else
+            finiteControl++;
+
+        if (currentState == "f")
+        {
+            isAccepting = true;
+        }
+    }
+
+    std::cout << "THIS IS ACCEPTING: " << std::boolalpha << isAccepting << std::endl;
     simulator.display();
 
     return 0;
@@ -150,4 +179,21 @@ void TuringMachine::display()
     {
         std::cout << *it << " ";
     }
+}
+
+void printInstantaneousDescription(std::list<std::string>::iterator start, std::list<std::string>::iterator curr, std::string currentState)
+{
+    // print the ID
+    // if (start == curr){
+    //     std::cout << "[" << currentState << "]";
+    // }
+    while (*start != "B")
+    {
+        if (start == curr)
+            std::cout << "[" << currentState << "]";
+        std::cout << *start;
+        start++;
+    }
+
+    std::cout << std::endl;
 }
