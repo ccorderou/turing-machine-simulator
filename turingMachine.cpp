@@ -22,6 +22,8 @@ struct TuringMachine
     std::string blankSymbol = "B";
     std::vector<std::string> acceptingStates;
     std::vector<std::string> tape;
+    // helper function to print contents of simulator for debugging purposes
+    void display();
 };
 
 // helper function to reduce redundancies
@@ -73,33 +75,7 @@ int main()
         }
     }
 
-    std::cout << "THE STATES ARE: " << std::endl;
-    for (int i{0}; i < simulator.states.size(); i++)
-    {
-        std::cout << '\t' << simulator.states[i] << std::endl;
-    }
-
-    std::cout << std::endl;
-
-    std::cout << "THE TAPE SYMBOLS ARE: " << std::endl;
-    for (int i{0}; i < simulator.tapeSymbols.size(); i++)
-    {
-        std::cout << '\t' << simulator.tapeSymbols[i] << std::endl;
-    }
-
-    std::cout << std::endl;
-
-    for (auto it{simulator.transitionFunction.begin()}; it != simulator.transitionFunction.end(); it++)
-    {
-        std::cout << "Key-Value Pair:" << std::endl;
-        std::cout << '\t' << "Key:" << it->first;
-        std::cout << '\t' << "Value:" << it->second;
-        std::cout << std::endl;
-    }
-
-    std::cout << std::endl;
-
-    std::cout << simulator.transitionFunction.size() << std::endl;
+    //simulator.display();
 
     return 0;
 }
@@ -110,4 +86,35 @@ bool contains(const std::vector<std::string> container, const std::string &lette
         if (letter == letter_val)
             return true;
     return false;
+}
+
+void TuringMachine::display()
+{
+    std::cout << "THE STATES ARE: " << std::endl;
+    for (int i{0}; i < states.size(); i++)
+    {
+        std::cout << '\t' << states[i] << std::endl;
+    }
+
+    std::cout << std::endl;
+
+    std::cout << "THE TAPE SYMBOLS ARE: " << std::endl;
+    for (int i{0}; i < tapeSymbols.size(); i++)
+    {
+        std::cout << '\t' << tapeSymbols[i] << std::endl;
+    }
+
+    std::cout << std::endl;
+
+    for (auto it{transitionFunction.begin()}; it != transitionFunction.end(); it++)
+    {
+        std::cout << "Key-Value Pair:" << std::endl;
+        std::cout << '\t' << "Key:" << it->first;
+        std::cout << '\t' << "Value:" << it->second;
+        std::cout << std::endl;
+    }
+
+    std::cout << std::endl;
+
+    std::cout << "Number of transition functions: " << transitionFunction.size() << std::endl;
 }
