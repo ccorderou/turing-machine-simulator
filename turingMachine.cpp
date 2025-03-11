@@ -25,6 +25,8 @@ struct TuringMachine
     std::list<std::string> tape;
     // helper function to print contents of simulator for debugging purposes
     void display();
+    // helper function to reduce redundancies
+    bool contains(const std::vector<std::string> container, const std::string &letter);
 };
 
 // helper function to reduce redundancies
@@ -90,11 +92,21 @@ int main()
     // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
     std::getline(std::cin, userInput);
 
+    // if the user inputs nothing, request for something
+    while (userInput.empty())
+    {
+        std::cout << "Input must only contain 0s and/or 1s: ";
+        std::string userInput{};
+        // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+        std::getline(std::cin, userInput);
+    }
+
     bool repromptInput{false};
     for (const auto &letter : userInput)
         if (letter != '0' && letter != '1')
             repromptInput = true;
 
+    // if the user inputs symbols not on the alphabet, re-prompt them for the correct input
     while (repromptInput)
     {
         std::cout << "Input must only contain 0s and/or 1s: ";
@@ -109,20 +121,17 @@ int main()
 
     std::string blank{"B"};
 
-    // I am going to place five preceding blanks in the front
-    // and five trailing blanks in the back
-    simulator.tape.push_back(blank);
-    simulator.tape.push_back(blank);
-    simulator.tape.push_back(blank);
-    simulator.tape.push_back(blank);
-    simulator.tape.push_back(blank);
+    // An arbitrary amount of blanks are placed in the beginning
+    for (int i{0}; i < 5; i++)
+        simulator.tape.push_back(blank);
+
+    // Whatever input the user wants, it goes in between the blanks
     for (const auto &letter : userInput)
         simulator.tape.push_back(std::string(1, letter));
-    simulator.tape.push_back(blank);
-    simulator.tape.push_back(blank);
-    simulator.tape.push_back(blank);
-    simulator.tape.push_back(blank);
-    simulator.tape.push_back(blank);
+
+    // An arbitrary amount of blanks are placed in the end
+    for (int i{0}; i < 5; i++)
+        simulator.tape.push_back(blank);
 
     // The finite control will begin at the start of the tape
     auto finiteControl = simulator.tape.begin();
@@ -131,26 +140,40 @@ int main()
     while (*finiteControl == "B")
         finiteControl++;
 
-    // std::cout << "BEGINNING WITH THE FIRST INPUT SYMBOL: " << *finite_control << std::endl;
+    // currentState will always be q0, so 0 represents that state
     std::string currentState{"0"};
+    // we declare isAccepting & isHalting to be false initially for we do not know if our inputs will accept, reject, or loop infinitely
     bool isAccepting{false};
     bool isHalting{false};
+
+    // the finite control will begin at the first input, so we start there
     auto startingPosition = finiteControl;
     auto lastPosition = finiteControl;
 
+    // our last position will be whenever we see the next blank symbol
+    // this means we begin on the first input symbol and end upon the viewing the first blank symbol
     while (*lastPosition != "B")
         lastPosition++;
-    // testLast--;
 
-    auto initialLastPosition = lastPosition;
+    // When printing, we would need to adjust our lastPosition according to the input size, and if the
+    // read/write head surpressses that length, we need to print that as well
     int readjustAmountBack{0};
-    // int readjustAmountFront{0};
+    // When printing, our read/write head will begin at the first input. However, if it moves to the left
+    // and goes past the first input, we need to capture those moves on our ID, so we will print that as well
     int position{0};
     // Declare a move variable for the transition function
     std::string direction;
+    // if our position is past the beginning, set inTheNegatives to be true
     bool inTheNegatives{false};
+
+    auto trueStart = simulator.tape.begin();
+    auto trueEnd = simulator.tape.end();
+    std::vector<std::string> precedingInputs{};
+    std::vector<std::string> trailingInputs{};
+
     while (!isAccepting && !isHalting)
     {
+        // readjust the starting position accordingly so that the appropriate ID is printed
         if (!direction.empty() && direction == "L" && position < 0)
         {
             startingPosition--;
@@ -161,7 +184,8 @@ int main()
             startingPosition++;
             inTheNegatives = true;
         }
-        // to avoid an extra blank on the front end to be printed
+        // to avoid an extra blank on the front end to be printed. This situation occurs
+        // when position is 0 but it was just a negative number. This condition keeps care of that situation.
         else if (!direction.empty() && direction != "R" && position == 0 && inTheNegatives)
         {
             startingPosition++;
@@ -178,8 +202,6 @@ int main()
         {
             lastPosition--;
             readjustAmountBack--;
-
-            // readjustLastPosition = false;
         }
 
         // Check if already in accepting state initially,
@@ -192,8 +214,11 @@ int main()
         }
         else
         {
+            std::cout << "what is the bad alloc here#11?" << std::endl;
             // print the ID
             printInstantaneousDescription(startingPosition, lastPosition, finiteControl, currentState);
+
+            std::cout << "what is the bad alloc here#12?" << std::endl;
             // perform computation
             std::string currentStateAndContent{currentState + *finiteControl};
             // If the key-value pair does not exist, the input crashes the machine, and so we halt
@@ -297,6 +322,5 @@ void printInstantaneousDescription(std::list<std::string>::iterator start, std::
         std::cout << *start;
         start++;
     }
-
     std::cout << std::endl;
 }
