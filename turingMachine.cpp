@@ -102,21 +102,27 @@ int main()
 
     std::string blank{"B"};
 
-    // I am going to place two preceding blanks in the front
-    // and two trailing blanks in the back
+    // I am going to place five preceding blanks in the front
+    // and five trailing blanks in the back
+    simulator.tape.push_back(blank);
+    simulator.tape.push_back(blank);
+    simulator.tape.push_back(blank);
     simulator.tape.push_back(blank);
     simulator.tape.push_back(blank);
     for (const auto &letter : userInput)
         simulator.tape.push_back(std::string(1, letter));
     simulator.tape.push_back(blank);
     simulator.tape.push_back(blank);
+    simulator.tape.push_back(blank);
+    simulator.tape.push_back(blank);
+    simulator.tape.push_back(blank);
 
+    // The finite control will begin at the start of the tape
     auto finiteControl = simulator.tape.begin();
 
+    // We will readjust it so that it points to the first input seen
     while (*finiteControl == "B")
-    {
         finiteControl++;
-    }
 
     // std::cout << "BEGINNING WITH THE FIRST INPUT SYMBOL: " << *finite_control << std::endl;
     std::string currentState{"0"};
@@ -124,32 +130,94 @@ int main()
     bool isHalting{false};
     auto startingPosition = finiteControl;
     auto lastPosition = simulator.tape.end();
+    auto testLast = finiteControl;
+
+    while (*testLast != "B")
+        testLast++;
+    // testLast--;
+
+    auto initialLastPosition = testLast;
+
+    std::cout << "BEGINNING WITH THE FIRST INPUT SYMBOL: " << *finiteControl << std::endl;
+    std::cout << "ENDING WITH THE LAST INPUT SYMBOL: " << *testLast << std::endl;
+
+    int readjustAmountBack{0};
+    // int readjustAmountFront{0};
+    int position{0};
+    // Declare a move variable for the transition function
+    std::string direction;
+    bool inTheNegatives{false};
     while (!isAccepting && !isHalting)
     {
+        std::cout << "MY CURRENT POSITION IS " << position << " AT THIS ID" << std::endl;
+        if (!direction.empty() && direction == "L" && position < 0)
+        {
+            startingPosition--;
+            inTheNegatives = true;
+        }
+        else if (!direction.empty() && direction != "R" && position < 0)
+        {
+            startingPosition++;
+            inTheNegatives = true;
+        }
+        // to avoid an extra blank on the front end to be printed
+        else if (!direction.empty() && direction != "R" && position == 0 && inTheNegatives)
+        {
+            startingPosition++;
+            inTheNegatives = false;
+        }
+        // if the finiteControl points to same cell, then testLast increments by one for printing purposes
+        if (testLast == finiteControl)
+        {
+            testLast++;
+            readjustAmountBack++;
+        }
+        // My finiteControl moved back once and so I readjust accordingly
+        else if (testLast != finiteControl && readjustAmountBack != 0)
+        {
+            testLast--;
+            readjustAmountBack--;
+
+            // readjustLastPosition = false;
+        }
+
         // Check if already in accepting state initially,
         // if not, compute compute and then re-evaluate upon completion of said computation
         if (currentState == "f")
-            isAccepting = true;
-        // print the ID
-        printInstantaneousDescription(startingPosition, lastPosition, finiteControl, currentState);
-
-        // perform computation
-        std::string currentStateAndContent{currentState + *finiteControl};
-
-        // If the key-value pair does not exist, the input crashes the machine, and so we halt
-        if (simulator.transitionFunction.count(currentStateAndContent) == 0)
-            isHalting = true;
-
-        if (!isHalting)
         {
-            std::string move = simulator.transitionFunction[currentStateAndContent];
+            isAccepting = true;
+            // print the ID
+            printInstantaneousDescription(startingPosition, testLast, finiteControl, currentState);
+        }
+        else
+        {
+            // print the ID
+            printInstantaneousDescription(startingPosition, testLast, finiteControl, currentState);
+            // perform computation
+            std::string currentStateAndContent{currentState + *finiteControl};
+            // If the key-value pair does not exist, the input crashes the machine, and so we halt
+            if (simulator.transitionFunction.count(currentStateAndContent) == 0)
+                isHalting = true;
 
-            currentState = move[0];
-            *finiteControl = move[1];
-            if (move[2] == 'L')
-                finiteControl--;
-            else
-                finiteControl++;
+            if (!isHalting)
+            {
+                std::string move = simulator.transitionFunction[currentStateAndContent];
+
+                currentState = move[0];
+                *finiteControl = move[1];
+                if (move[2] == 'L')
+                {
+                    direction = "L";
+                    finiteControl--;
+                    position--;
+                }
+                else
+                {
+                    direction = "R";
+                    finiteControl++;
+                    position++;
+                }
+            }
         }
     }
 
@@ -158,7 +226,7 @@ int main()
     else if (isHalting)
         std::cout << "Your input was rejected" << std::endl;
 
-    simulator.display();
+    // simulator.display();
 
     return 0;
 }
@@ -213,14 +281,12 @@ void TuringMachine::display()
 
 void printInstantaneousDescription(std::list<std::string>::iterator start, std::list<std::string>::iterator end, std::list<std::string>::iterator curr, std::string currentState)
 {
-    // print the ID
-    // if (start == curr){
-    //     std::cout << "[" << currentState << "]";
-    // }
     while (start != end)
     {
         if (start == curr)
+        {
             std::cout << "[" << currentState << "]";
+        }
         std::cout << *start;
         start++;
     }
