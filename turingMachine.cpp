@@ -43,6 +43,13 @@ int main()
     // Instantiate file-reading object
     std::ifstream inputFile(fileName);
 
+    // if the file does not exist, tell the user to try again
+    if (inputFile.fail())
+    {
+        std::cerr << "Invalid file name. Ensure correct spelling and file location." << std::endl;
+        exit(1);
+    }
+
     // Each line is either:
     //  1) blank
     //  2) a comment indicated by "//"
@@ -216,9 +223,15 @@ int main()
     }
 
     if (isAccepting && !isHalting)
-        std::cout << "Your input was accepted" << std::endl;
+    {
+        std::cout << "Your input was: ";
+        std::cout << "\033[32m" << "accepted" << "\033[0m" << std::endl;
+    }
     else if (!isAccepting && isHalting)
-        std::cout << "Your input was rejected" << std::endl;
+    {
+        std::cout << "Your input was: ";
+        std::cout << "\033[31m" << "rejected" << "\033[0m" << std::endl;
+    }
 
     // simulator.display();
 
