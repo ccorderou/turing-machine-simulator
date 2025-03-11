@@ -129,18 +129,13 @@ int main()
     bool isAccepting{false};
     bool isHalting{false};
     auto startingPosition = finiteControl;
-    auto lastPosition = simulator.tape.end();
-    auto testLast = finiteControl;
+    auto lastPosition = finiteControl;
 
-    while (*testLast != "B")
-        testLast++;
+    while (*lastPosition != "B")
+        lastPosition++;
     // testLast--;
 
-    auto initialLastPosition = testLast;
-
-    std::cout << "BEGINNING WITH THE FIRST INPUT SYMBOL: " << *finiteControl << std::endl;
-    std::cout << "ENDING WITH THE LAST INPUT SYMBOL: " << *testLast << std::endl;
-
+    auto initialLastPosition = lastPosition;
     int readjustAmountBack{0};
     // int readjustAmountFront{0};
     int position{0};
@@ -149,7 +144,6 @@ int main()
     bool inTheNegatives{false};
     while (!isAccepting && !isHalting)
     {
-        std::cout << "MY CURRENT POSITION IS " << position << " AT THIS ID" << std::endl;
         if (!direction.empty() && direction == "L" && position < 0)
         {
             startingPosition--;
@@ -167,15 +161,15 @@ int main()
             inTheNegatives = false;
         }
         // if the finiteControl points to same cell, then testLast increments by one for printing purposes
-        if (testLast == finiteControl)
+        if (lastPosition == finiteControl)
         {
-            testLast++;
+            lastPosition++;
             readjustAmountBack++;
         }
         // My finiteControl moved back once and so I readjust accordingly
-        else if (testLast != finiteControl && readjustAmountBack != 0)
+        else if (lastPosition != finiteControl && readjustAmountBack != 0)
         {
-            testLast--;
+            lastPosition--;
             readjustAmountBack--;
 
             // readjustLastPosition = false;
@@ -187,12 +181,12 @@ int main()
         {
             isAccepting = true;
             // print the ID
-            printInstantaneousDescription(startingPosition, testLast, finiteControl, currentState);
+            printInstantaneousDescription(startingPosition, lastPosition, finiteControl, currentState);
         }
         else
         {
             // print the ID
-            printInstantaneousDescription(startingPosition, testLast, finiteControl, currentState);
+            printInstantaneousDescription(startingPosition, lastPosition, finiteControl, currentState);
             // perform computation
             std::string currentStateAndContent{currentState + *finiteControl};
             // If the key-value pair does not exist, the input crashes the machine, and so we halt
@@ -221,9 +215,9 @@ int main()
         }
     }
 
-    if (isAccepting)
+    if (isAccepting && !isHalting)
         std::cout << "Your input was accepted" << std::endl;
-    else if (isHalting)
+    else if (!isAccepting && isHalting)
         std::cout << "Your input was rejected" << std::endl;
 
     // simulator.display();
