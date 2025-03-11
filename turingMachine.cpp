@@ -31,7 +31,7 @@ struct TuringMachine
 bool contains(const std::vector<std::string> container, const std::string &letter);
 
 // helper function to output IDs
-void printInstantaneousDescription(std::list<std::string>::iterator start, std::list<std::string>::iterator curr, std::string currentState);
+void printInstantaneousDescription(std::list<std::string>::iterator start, std::list<std::string>::iterator end, std::list<std::string>::iterator curr, std::string currentState);
 
 int main()
 {
@@ -121,31 +121,43 @@ int main()
     // std::cout << "BEGINNING WITH THE FIRST INPUT SYMBOL: " << *finite_control << std::endl;
     std::string currentState{"0"};
     bool isAccepting{false};
+    bool isHalting{false};
     auto startingPosition = finiteControl;
-    while (!isAccepting)
+    auto lastPosition = simulator.tape.end();
+    while (!isAccepting && !isHalting)
     {
-
+        // Check if already in accepting state initially,
+        // if not, compute compute and then re-evaluate upon completion of said computation
+        if (currentState == "f")
+            isAccepting = true;
         // print the ID
-        printInstantaneousDescription(startingPosition, finiteControl, currentState);
+        printInstantaneousDescription(startingPosition, lastPosition, finiteControl, currentState);
 
         // perform computation
         std::string currentStateAndContent{currentState + *finiteControl};
-        std::string move = simulator.transitionFunction[currentStateAndContent];
 
-        currentState = move[0];
-        *finiteControl = move[1];
-        if (move[2] == 'L')
-            finiteControl--;
-        else
-            finiteControl++;
+        // If the key-value pair does not exist, the input crashes the machine, and so we halt
+        if (simulator.transitionFunction.count(currentStateAndContent) == 0)
+            isHalting = true;
 
-        if (currentState == "f")
+        if (!isHalting)
         {
-            isAccepting = true;
+            std::string move = simulator.transitionFunction[currentStateAndContent];
+
+            currentState = move[0];
+            *finiteControl = move[1];
+            if (move[2] == 'L')
+                finiteControl--;
+            else
+                finiteControl++;
         }
     }
 
-    std::cout << "THIS IS ACCEPTING: " << std::boolalpha << isAccepting << std::endl;
+    if (isAccepting)
+        std::cout << "Your input was accepted" << std::endl;
+    else if (isHalting)
+        std::cout << "Your input was rejected" << std::endl;
+
     simulator.display();
 
     return 0;
@@ -199,13 +211,13 @@ void TuringMachine::display()
     }
 }
 
-void printInstantaneousDescription(std::list<std::string>::iterator start, std::list<std::string>::iterator curr, std::string currentState)
+void printInstantaneousDescription(std::list<std::string>::iterator start, std::list<std::string>::iterator end, std::list<std::string>::iterator curr, std::string currentState)
 {
     // print the ID
     // if (start == curr){
     //     std::cout << "[" << currentState << "]";
     // }
-    while (*start != "B")
+    while (start != end)
     {
         if (start == curr)
             std::cout << "[" << currentState << "]";
