@@ -252,13 +252,17 @@ void runSimulation(TuringMachine simulator)
     // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
     std::getline(std::cin, userInput);
 
-    // if the user inputs nothing, request for something
-    while (userInput.empty())
+    if (userInput.empty())
     {
-        std::cout << "No word detected. Re-enter a valid input word: ";
-        std::string userInput{};
-        // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
-        std::getline(std::cin, userInput);
+        bool isNonEmpty{false};
+        while (!isNonEmpty)
+        {
+            std::cout << "No word detected. Re-enter a valid input word: ";
+            // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+            std::getline(std::cin, userInput);
+            if (!userInput.empty())
+                isNonEmpty = true;
+        }
     }
     // if the user inputs an invalid symbol, prompt for a valid input
     bool repromptInput{false};
