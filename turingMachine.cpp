@@ -6,6 +6,17 @@
 #include <cctype>
 #include <list>
 
+/*
+A Turing Machine struct with the following data structures that represent their respective role in the 7-tuple:
+    std::vector<std::string> states representing the set of states of the finite control
+    std::string inputSymbols[2] that representing the infinite set of input symbols. In our case, 0 and 1.
+    std::vector<std::string> tapeSymbols representing the set of tape symbols.
+    std::unordered_map<std::string, std::string> transitionFunction representing the transition function.
+    std::string startState = "q0" representing the start state.
+    std::string blankSymbol = "B" representing the blank symbol.
+    std::string acceptingStates = "f" representing the set of accepting states. In our case, just f.
+    std::list<std::string> tape representing the tape itself.
+ */
 struct TuringMachine
 {
     std::vector<std::string> states{"f"};
@@ -28,7 +39,6 @@ void printInstantaneousDescription(std::list<std::string>::iterator start, std::
 
 int main()
 {
-
     // Prompt user for file name
     std::cout << "Enter a file name: ";
     std::string fileName{};
@@ -56,7 +66,7 @@ int main()
         if (std::isdigit(fileLine[0]))
             isFiveTuple = true;
 
-        // /currentState currentTapeSymbol newState newTapeSymbol direction
+        // currentState currentTapeSymbol newState newTapeSymbol direction
         if (isFiveTuple)
         {
             if (!contains(simulator.states, std::string(1, fileLine[0])))
@@ -78,7 +88,8 @@ int main()
             isFiveTuple = false;
         }
     }
-    std::cout << "Enter an input word: ";
+
+    std::cout << "Enter an input word. Must consist of 0s and/or 1s. If you wish to stop the program upon an infinite loop, press Ctrl+C: " << std::endl;
     std::string userInput{};
     // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
     std::getline(std::cin, userInput);
