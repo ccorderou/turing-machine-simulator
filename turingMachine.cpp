@@ -100,13 +100,13 @@ int main()
         // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
         std::getline(std::cin, userInput);
     }
-
+    // if the user inputs an invalid symbol, prompt for a valid input
     bool repromptInput{false};
     for (const auto &letter : userInput)
         if (letter != '0' && letter != '1')
             repromptInput = true;
 
-    // if the user inputs symbols not on the alphabet, re-prompt them for the correct input
+    // while input is valid, keep reprompting for valid input
     while (repromptInput)
     {
         std::cout << "Input must only contain 0s and/or 1s: ";
@@ -121,16 +121,16 @@ int main()
 
     std::string blank{"B"};
 
-    // An arbitrary amount of blanks are placed in the beginning
-    for (int i{0}; i < 5; i++)
+    // An arbitrary amount of blanks placed in the front
+    for (int i{0}; i < 25; i++)
         simulator.tape.push_back(blank);
 
-    // Whatever input the user wants, it goes in between the blanks
+    // An arbitrary amount of blanks placed in between the blanks
     for (const auto &letter : userInput)
         simulator.tape.push_back(std::string(1, letter));
 
-    // An arbitrary amount of blanks are placed in the end
-    for (int i{0}; i < 5; i++)
+    // An arbitrary amount of blanks placed in the back
+    for (int i{0}; i < 25; i++)
         simulator.tape.push_back(blank);
 
     // The finite control will begin at the start of the tape
@@ -165,12 +165,6 @@ int main()
     std::string direction;
     // if our position is past the beginning, set inTheNegatives to be true
     bool inTheNegatives{false};
-
-    auto trueStart = simulator.tape.begin();
-    auto trueEnd = simulator.tape.end();
-    std::vector<std::string> precedingInputs{};
-    std::vector<std::string> trailingInputs{};
-
     while (!isAccepting && !isHalting)
     {
         // readjust the starting position accordingly so that the appropriate ID is printed
@@ -179,14 +173,14 @@ int main()
             startingPosition--;
             inTheNegatives = true;
         }
-        else if (!direction.empty() && direction != "R" && position < 0)
+        else if (!direction.empty() && direction == "R" && position < 0)
         {
             startingPosition++;
             inTheNegatives = true;
         }
         // to avoid an extra blank on the front end to be printed. This situation occurs
         // when position is 0 but it was just a negative number. This condition keeps care of that situation.
-        else if (!direction.empty() && direction != "R" && position == 0 && inTheNegatives)
+        else if (!direction.empty() && direction == "R" && position == 0 && inTheNegatives)
         {
             startingPosition++;
             inTheNegatives = false;
@@ -214,11 +208,8 @@ int main()
         }
         else
         {
-            std::cout << "what is the bad alloc here#11?" << std::endl;
             // print the ID
             printInstantaneousDescription(startingPosition, lastPosition, finiteControl, currentState);
-
-            std::cout << "what is the bad alloc here#12?" << std::endl;
             // perform computation
             std::string currentStateAndContent{currentState + *finiteControl};
             // If the key-value pair does not exist, the input crashes the machine, and so we halt
@@ -322,5 +313,6 @@ void printInstantaneousDescription(std::list<std::string>::iterator start, std::
         std::cout << *start;
         start++;
     }
+
     std::cout << std::endl;
 }
