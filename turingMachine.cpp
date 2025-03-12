@@ -84,13 +84,13 @@ int main()
     std::getline(std::cin, userInput);
 
     // if the user inputs nothing, request for something
-    while (userInput.empty())
-    {
-        std::cout << "Input must only contain 0s and/or 1s: ";
-        std::string userInput{};
-        // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
-        std::getline(std::cin, userInput);
-    }
+    // while (userInput.empty())
+    // {
+    //     std::cout << "Input must only contain 0s and/or 1s: ";
+    //     std::string userInput{};
+    //     // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+    //     std::getline(std::cin, userInput);
+    // }
     // if the user inputs an invalid symbol, prompt for a valid input
     bool repromptInput{false};
     for (const auto &letter : userInput)
@@ -113,15 +113,18 @@ int main()
     std::string blank{"B"};
 
     // An arbitrary amount of blanks placed in the front
-    for (int i{0}; i < 25; i++)
+    for (int i{0}; i < 5; i++)
         simulator.tape.push_back(blank);
 
     // An arbitrary amount of blanks placed in between the blanks
-    for (const auto &letter : userInput)
-        simulator.tape.push_back(std::string(1, letter));
+    if (!userInput.empty())
+    {
+        for (const auto &letter : userInput)
+            simulator.tape.push_back(std::string(1, letter));
+    }
 
     // An arbitrary amount of blanks placed in the back
-    for (int i{0}; i < 25; i++)
+    for (int i{0}; i < 5; i++)
         simulator.tape.push_back(blank);
 
     // The finite control will begin at the start of the tape
@@ -158,6 +161,9 @@ int main()
     bool inTheNegatives{false};
     while (!isAccepting && !isHalting)
     {
+        auto trueStart = simulator.tape.begin();
+        auto trueEnd = simulator.tape.end();
+
         // readjust the starting position accordingly so that the appropriate ID is printed
         if (!direction.empty() && direction == "L" && position < 0)
         {
@@ -226,6 +232,13 @@ int main()
                     position++;
                 }
             }
+        }
+
+        auto oneStepAhead = finiteControl;
+        oneStepAhead++;
+        if (oneStepAhead == trueEnd)
+        {
+            simulator.tape.push_back(blank);
         }
     }
 
