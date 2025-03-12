@@ -426,6 +426,7 @@ void runSimulation(TuringMachine simulator)
             simulator.tape.push_front(simulator.blankSymbol);
     }
 
+    // Print whether or not the string was accepted according to the machine's encoding
     if (isAccepting && !isHalting)
     {
         std::cout << "Your input was: ";
