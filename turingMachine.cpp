@@ -167,11 +167,27 @@ TuringMachine constructTM(std::ifstream &inputFile, std::string name)
     std::string fileLine{};
     TuringMachine simulator;
     bool isFiveTuple{false};
+
+    // keeps track of empty spaces
+    bool lineIsEmptySpace{false};
+    // keeps track of transition functions
+    bool lineStartsWithInteger{false};
+    // keeps track of lines that are not empty, such as commented lines
+    bool lineIsNonEmptySpace{false};
+
     while (std::getline(inputFile, fileLine))
     {
+        if (fileLine.empty())
+            lineIsEmptySpace = true;
+        else if (!fileLine.empty())
+            lineIsNonEmptySpace = true;
+
         // if a line begins with an integer, it must be a transition function
         if (std::isdigit(fileLine[0]))
+        {
             isFiveTuple = true;
+            lineStartsWithInteger = true;
+        }
 
         // currentState currentTapeSymbol newState newTapeSymbol direction
         if (isFiveTuple)
@@ -199,6 +215,13 @@ TuringMachine constructTM(std::ifstream &inputFile, std::string name)
         }
     }
 
+    // only empty space indicates no valid input, so return a default Turing Machine struct
+    if (lineIsEmptySpace && !lineStartsWithInteger && !lineIsEmptySpace)
+    {
+        TuringMachine empty;
+        return empty;
+    }
+
     return simulator;
 }
 
@@ -218,6 +241,10 @@ bool isValidTransitionFunction(std::string currentStateAndSymbol, std::string ne
 
 bool isValidSimulator(TuringMachine simulator)
 {
+    // this means I never read a state from my file, so return false
+    if (simulator.states.size() == 1)
+        return false;
+        
     // if I have an empty state, that means there was a space when there should have been a number
     for (const auto &state : simulator.states)
         if (state == "")
