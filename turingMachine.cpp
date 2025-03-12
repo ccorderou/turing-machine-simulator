@@ -92,18 +92,7 @@ int main()
     do
     {
         runSimulation(simulator);
-        std::cout << "Do you wish to run the TM on another input string? (Y/N): ";
-        std::string response{};
-        std::getline(std::cin, response);
-        if (response == "Y" || response == "y")
-        {
-            simulator = initalState;
-            continueSimulator = true;
-        }
-        else
-        {
-            continueSimulator = false;
-        }
+        simulator = initalState;
 
     } while (continueSimulator);
 
