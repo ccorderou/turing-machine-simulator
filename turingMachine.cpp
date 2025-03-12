@@ -86,7 +86,7 @@ int main()
     // if the user inputs nothing, request for something
     while (userInput.empty())
     {
-        std::cout << "Input must only contain 0s and/or 1s: ";
+        std::cout << "No word detected. Re-enter a valid input word: ";
         std::string userInput{};
         // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
         std::getline(std::cin, userInput);
@@ -100,7 +100,7 @@ int main()
     // while input is invalid, keep reprompting for valid input
     while (repromptInput)
     {
-        std::cout << "Input must only contain 0s and/or 1s: ";
+        std::cout << "Invalid symbols detected. Re-enter a valid input word: ";
         std::string userInput{};
         // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
         std::getline(std::cin, userInput);
