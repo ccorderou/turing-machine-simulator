@@ -234,12 +234,17 @@ int main()
             }
         }
 
+        // Check if I will reach the end of my current size and add one more blank as needed to the back
         auto oneStepAhead = finiteControl;
         oneStepAhead++;
         if (oneStepAhead == trueEnd)
-        {
             simulator.tape.push_back(blank);
-        }
+
+        // Check if I will reach below the start of my current size and add one more blank as needed to the front
+        auto oneStepBehind = finiteControl;
+        oneStepBehind--;
+        if (oneStepBehind == trueStart)
+            simulator.tape.push_front(blank);
     }
 
     if (isAccepting && !isHalting)
