@@ -6,27 +6,18 @@
 #include <cctype>
 #include <list>
 
-/**
-    @param: Takes in the current state and current symbol
-    @post: Returns the new state, new type symbol, and direction in a string
-*/
-// std::string transitionFunction(std::string currentState, std::string currentTypeSymbol);
-
 struct TuringMachine
 {
     std::vector<std::string> states{"f"};
     std::string inputSymbols[2] = {"0", "1"};
     std::vector<std::string> tapeSymbols;
     std::unordered_map<std::string, std::string> transitionFunction;
-    // std::string transitionFunction(std::string currentState, std::string currentTypeSymbol);
-    // std::string startState = "q0";
-    // std::string blankSymbol = "B";
-    // std::vector<std::string> acceptingStates;
+    std::string startState = "q0";
+    std::string blankSymbol = "B";
+    std::string acceptingStates = "f";
     std::list<std::string> tape;
     // helper function to print contents of simulator for debugging purposes
     void display();
-    // helper function to reduce redundancies
-    bool contains(const std::vector<std::string> container, const std::string &letter);
 };
 
 // helper function to reduce redundancies
