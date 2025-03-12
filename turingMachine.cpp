@@ -412,9 +412,9 @@ void runSimulation(TuringMachine simulator)
         This means I will attempt to access invalid memory if I am on it. So, this is a safeguard so that my tape
         grows dynamically as needed.
         */
-        auto oneStepAhead = tapeHead;
-        oneStepAhead++;
-        if (oneStepAhead == trueEnd)
+        auto checkEndAhead = tapeHead;
+        checkEndAhead++;
+        if (checkEndAhead == trueEnd)
             simulator.tape.push_back(simulator.blankSymbol);
 
         /*
@@ -422,8 +422,7 @@ void runSimulation(TuringMachine simulator)
         then I will add a blank before it to ensure that no invalid memory is accessed. Thus, I safely ensure
         the expansion of my tape as needed
         */
-        auto oneStepBehind = tapeHead;
-        if (oneStepBehind == trueStart)
+        if (tapeHead == trueStart)
             simulator.tape.push_front(simulator.blankSymbol);
     }
 
