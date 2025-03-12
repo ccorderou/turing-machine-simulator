@@ -183,7 +183,8 @@ TuringMachine constructTM(std::ifstream &inputFile, std::string name)
             lineIsNonEmptySpace = true;
 
         // if a line begins with an integer, it must be a transition function
-        if (std::isdigit(fileLine[0]))
+        // if the length is less than 9, there must be missing symbols
+        if (std::isdigit(fileLine[0]) && fileLine.length() >= 9)
         {
             isFiveTuple = true;
             lineStartsWithInteger = true;
@@ -244,7 +245,7 @@ bool isValidSimulator(TuringMachine simulator)
     // this means I never read a state from my file, so return false
     if (simulator.states.size() == 1)
         return false;
-        
+
     // if I have an empty state, that means there was a space when there should have been a number
     for (const auto &state : simulator.states)
         if (state == "")
