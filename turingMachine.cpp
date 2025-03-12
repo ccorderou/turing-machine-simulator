@@ -271,17 +271,19 @@ void runSimulation(TuringMachine simulator)
             repromptInput = true;
 
     // while input is invalid, keep reprompting for valid input
+    std::string validInput = "";
     while (repromptInput)
     {
         std::cout << "Invalid symbols detected. Re-enter a valid input word: ";
-        std::string userInput{};
         // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
-        std::getline(std::cin, userInput);
+        std::getline(std::cin, validInput);
         repromptInput = false;
-        for (const auto &letter : userInput)
+        for (const auto &letter : validInput)
             if (letter != '0' && letter != '1')
                 repromptInput = true;
     }
+
+    userInput = validInput;
 
     // An arbitrary amount of blanks placed in the front
     for (int i{0}; i < 1; i++)
