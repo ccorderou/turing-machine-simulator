@@ -1,3 +1,2 @@
-# Ignore all executable files
-*
-!*/
+#Ignore text files
+*.txt

@@ -238,7 +238,7 @@ void printInstantaneousDescription(std::list<std::string>::iterator start, std::
 
 void runSimulation(TuringMachine simulator)
 {
-    std::cout << "Enter an input word. Must consist of 0s and/or 1s. Press Ctrl+C to exit the program: " << std::endl;
+    std::cout << "Enter an input word.\nMust consist of 0s and/or 1s.\nPress Ctrl+C to exit the program anytime: ";
     std::string userInput{};
     // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
     std::getline(std::cin, userInput);
