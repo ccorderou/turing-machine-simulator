@@ -80,7 +80,7 @@ int main()
                       << "1) blank" << "\n"
                       << "2) a comment indicated by \"//\""
                       << "\n"
-                      << "3) or a 5-tuple consisting of currentState currentTapeSymbol newState newTapeSymbol direction"
+                      << "3) or a 5-tuple consisting of currentState currentTapeSymbol newState newTapeSymbol direction with optional comment"
                       << "\n"
                       << "Enter a valid file: ";
         }
