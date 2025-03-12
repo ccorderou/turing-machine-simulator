@@ -46,14 +46,17 @@ bool isValidSimulator(TuringMachine simulator);
 // helper function that detects invalid transition functions within my text file
 bool isValidTransitionFunction(std::string currentStateAndSymbol, std::string nextStateAndSymbolAndDirection);
 
+// helper function that enables users to input strings into the same Turing Machine encoding
+void runSimulation(TuringMachine simulator);
+
 int main()
 {
-
     bool flag{false};
     TuringMachine simulator;
     // Prompt user for file name
     std::cout << "Enter a file name: ";
     std::string fileName{};
+
     do
     {
         std::getline(std::cin, fileName);
@@ -75,184 +78,25 @@ int main()
 
     } while (!flag);
 
-    std::cout << "Enter an input word. Must consist of 0s and/or 1s. If you wish to stop the program upon an infinite loop, press Ctrl+C: " << std::endl;
-    std::string userInput{};
-    // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
-    std::getline(std::cin, userInput);
-
-    // if the user inputs nothing, request for something
-    while (userInput.empty())
+    bool continueSimulator{true};
+    TuringMachine initalState = simulator;
+    do
     {
-        std::cout << "No word detected. Re-enter a valid input word: ";
-        std::string userInput{};
-        // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
-        std::getline(std::cin, userInput);
-    }
-    // if the user inputs an invalid symbol, prompt for a valid input
-    bool repromptInput{false};
-    for (const auto &letter : userInput)
-        if (letter != '0' && letter != '1')
-            repromptInput = true;
-
-    // while input is invalid, keep reprompting for valid input
-    while (repromptInput)
-    {
-        std::cout << "Invalid symbols detected. Re-enter a valid input word: ";
-        std::string userInput{};
-        // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
-        std::getline(std::cin, userInput);
-        repromptInput = false;
-        for (const auto &letter : userInput)
-            if (letter != '0' && letter != '1')
-                repromptInput = true;
-    }
-
-    std::string blank{"B"};
-
-    // An arbitrary amount of blanks placed in the front
-    for (int i{0}; i < 1; i++)
-        simulator.tape.push_back(blank);
-
-    // Input string
-    for (const auto &letter : userInput)
-        simulator.tape.push_back(std::string(1, letter));
-
-    // An arbitrary amount of blanks placed in the back
-    for (int i{0}; i < 1; i++)
-        simulator.tape.push_back(blank);
-
-    // The finite control will begin at the start of the tape
-    auto tapeHead = simulator.tape.begin();
-
-    // We will readjust it so that it points to the first input seen
-    while (*tapeHead == "B")
-        tapeHead++;
-
-    // currentState will always be q0, so 0 represents that state
-    std::string finiteControl{"0"};
-    // we declare isAccepting & isHalting to be false initially for we do not know if our inputs will accept, reject, or loop infinitely
-    bool isAccepting{false};
-    bool isHalting{false};
-
-    // the finite control will begin at the first input, so we start there
-    auto startingPosition = tapeHead;
-    auto lastPosition = tapeHead;
-
-    // our last position will be whenever we see the next blank symbol
-    // this means we begin on the first input symbol and end upon the viewing the first blank symbol
-    while (*lastPosition != "B")
-        lastPosition++;
-
-    // When printing, we would need to adjust our lastPosition according to the input size, and if the
-    // read/write head surpressses that length, we need to print that as well
-    int readjustAmountBack{0};
-    // When printing, our read/write head will begin at the first input. However, if it moves to the left
-    // and goes past the first input, we need to capture those moves on our ID, so we will print that as well
-    int position{0};
-    // Declare a move variable for the transition function
-    std::string direction;
-    // if our position is past the beginning, set inTheNegatives to be true
-    bool inTheNegatives{false};
-    while (!isAccepting && !isHalting)
-    {
-        auto trueStart = simulator.tape.begin();
-        auto trueEnd = simulator.tape.end();
-
-        // readjust the starting position accordingly so that the appropriate ID is printed
-        if (!direction.empty() && direction == "L" && position < 0)
+        runSimulation(simulator);
+        std::cout << "Do you wish to run the TM on another input string? (Y/N): ";
+        std::string response{};
+        std::getline(std::cin, response);
+        if (response == "Y" || response == "y")
         {
-            startingPosition--;
-            inTheNegatives = true;
-        }
-        else if (!direction.empty() && direction == "R" && position < 0)
-        {
-            startingPosition++;
-            inTheNegatives = true;
-        }
-        // to avoid an extra blank on the front end to be printed. This situation occurs
-        // when position is 0 but it was just a negative number. This condition keeps care of that situation.
-        else if (!direction.empty() && direction == "R" && position == 0 && inTheNegatives)
-        {
-            startingPosition++;
-            inTheNegatives = false;
-        }
-        // if the finiteControl points to same cell, then testLast increments by one for printing purposes
-        if (lastPosition == tapeHead)
-        {
-            lastPosition++;
-            readjustAmountBack++;
-        }
-        // My finiteControl moved back once and so I readjust accordingly
-        else if (lastPosition != tapeHead && readjustAmountBack != 0)
-        {
-            lastPosition--;
-            readjustAmountBack--;
-        }
-
-        // Check if already in accepting state initially,
-        // if not, compute compute and then re-evaluate upon completion of said computation
-        if (finiteControl == "f")
-        {
-            isAccepting = true;
-            // print the ID
-            printInstantaneousDescription(startingPosition, lastPosition, tapeHead, finiteControl);
+            simulator = initalState;
+            continueSimulator = true;
         }
         else
         {
-            // print the ID
-            printInstantaneousDescription(startingPosition, lastPosition, tapeHead, finiteControl);
-            // perform computation
-            std::string currentStateAndContent{finiteControl + *tapeHead};
-            // If the key-value pair does not exist, the input crashes the machine, and so we halt
-            if (simulator.transitionFunction.count(currentStateAndContent) == 0)
-                isHalting = true;
-
-            if (!isHalting)
-            {
-                std::string move = simulator.transitionFunction[currentStateAndContent];
-
-                finiteControl = move[0];
-                *tapeHead = move[1];
-                if (move[2] == 'L')
-                {
-                    direction = "L";
-                    tapeHead--;
-                    position--;
-                }
-                else
-                {
-                    direction = "R";
-                    tapeHead++;
-                    position++;
-                }
-            }
+            continueSimulator = false;
         }
 
-        // Check if I will reach the end of my current size and add one more blank as needed to the back
-        auto oneStepAhead = tapeHead;
-        oneStepAhead++;
-        if (oneStepAhead == trueEnd)
-            simulator.tape.push_back(blank);
-
-        // Check if I will reach below the start of my current size and add one more blank as needed to the front
-        auto oneStepBehind = tapeHead;
-        oneStepBehind--;
-        if (oneStepBehind == trueStart)
-            simulator.tape.push_front(blank);
-    }
-
-    if (isAccepting && !isHalting)
-    {
-        std::cout << "Your input was: ";
-        std::cout << "\033[32m" << "accepted" << "\033[0m" << std::endl;
-    }
-    else if (!isAccepting && isHalting)
-    {
-        std::cout << "Your input was: ";
-        std::cout << "\033[31m" << "rejected" << "\033[0m" << std::endl;
-    }
-
-    // simulator.display();
+    } while (continueSimulator);
 
     return 0;
 }
@@ -390,4 +234,182 @@ void printInstantaneousDescription(std::list<std::string>::iterator start, std::
     }
 
     std::cout << std::endl;
+}
+
+void runSimulation(TuringMachine simulator)
+{
+    std::cout << "Enter an input word. Must consist of 0s and/or 1s. Press Ctrl+C to exit the program: " << std::endl;
+    std::string userInput{};
+    // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+    std::getline(std::cin, userInput);
+
+    // if the user inputs nothing, request for something
+    while (userInput.empty())
+    {
+        std::cout << "No word detected. Re-enter a valid input word: ";
+        std::string userInput{};
+        // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+        std::getline(std::cin, userInput);
+    }
+    // if the user inputs an invalid symbol, prompt for a valid input
+    bool repromptInput{false};
+    for (const auto &letter : userInput)
+        if (letter != '0' && letter != '1')
+            repromptInput = true;
+
+    // while input is invalid, keep reprompting for valid input
+    while (repromptInput)
+    {
+        std::cout << "Invalid symbols detected. Re-enter a valid input word: ";
+        std::string userInput{};
+        // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+        std::getline(std::cin, userInput);
+        repromptInput = false;
+        for (const auto &letter : userInput)
+            if (letter != '0' && letter != '1')
+                repromptInput = true;
+    }
+
+    // An arbitrary amount of blanks placed in the front
+    for (int i{0}; i < 1; i++)
+        simulator.tape.push_back(simulator.blankSymbol);
+
+    // Input string
+    for (const auto &letter : userInput)
+        simulator.tape.push_back(std::string(1, letter));
+
+    // An arbitrary amount of blanks placed in the back
+    for (int i{0}; i < 1; i++)
+        simulator.tape.push_back(simulator.blankSymbol);
+
+    // The finite control will begin at the start of the tape
+    auto tapeHead = simulator.tape.begin();
+
+    // We will readjust it so that it points to the first input seen
+    while (*tapeHead == "B")
+        tapeHead++;
+
+    // currentState will always be q0, so 0 represents that state
+    std::string finiteControl{"0"};
+    // we declare isAccepting & isHalting to be false initially for we do not know if our inputs will accept, reject, or loop infinitely
+    bool isAccepting{false};
+    bool isHalting{false};
+
+    // the finite control will begin at the first input, so we start there
+    auto startingPosition = tapeHead;
+    auto lastPosition = tapeHead;
+
+    // our last position will be whenever we see the next blank symbol
+    // this means we begin on the first input symbol and end upon the viewing the first blank symbol
+    while (*lastPosition != "B")
+        lastPosition++;
+
+    // When printing, we would need to adjust our lastPosition according to the input size, and if the
+    // read/write head surpressses that length, we need to print that as well
+    int readjustAmountBack{0};
+    // When printing, our read/write head will begin at the first input. However, if it moves to the left
+    // and goes past the first input, we need to capture those moves on our ID, so we will print that as well
+    int position{0};
+    // Declare a move variable for the transition function
+    std::string direction;
+    // if our position is past the beginning, set inTheNegatives to be true
+    bool inTheNegatives{false};
+    while (!isAccepting && !isHalting)
+    {
+        auto trueStart = simulator.tape.begin();
+        auto trueEnd = simulator.tape.end();
+
+        // readjust the starting position accordingly so that the appropriate ID is printed
+        if (!direction.empty() && direction == "L" && position < 0)
+        {
+            startingPosition--;
+            inTheNegatives = true;
+        }
+        else if (!direction.empty() && direction == "R" && position < 0)
+        {
+            startingPosition++;
+            inTheNegatives = true;
+        }
+        // to avoid an extra blank on the front end to be printed. This situation occurs
+        // when position is 0 but it was just a negative number. This condition keeps care of that situation.
+        else if (!direction.empty() && direction == "R" && position == 0 && inTheNegatives)
+        {
+            startingPosition++;
+            inTheNegatives = false;
+        }
+        // if the finiteControl points to same cell, then testLast increments by one for printing purposes
+        if (lastPosition == tapeHead)
+        {
+            lastPosition++;
+            readjustAmountBack++;
+        }
+        // My finiteControl moved back once and so I readjust accordingly
+        else if (lastPosition != tapeHead && readjustAmountBack != 0)
+        {
+            lastPosition--;
+            readjustAmountBack--;
+        }
+
+        // Check if already in accepting state initially,
+        // if not, compute compute and then re-evaluate upon completion of said computation
+        if (finiteControl == "f")
+        {
+            isAccepting = true;
+            // print the ID
+            printInstantaneousDescription(startingPosition, lastPosition, tapeHead, finiteControl);
+        }
+        else
+        {
+            // print the ID
+            printInstantaneousDescription(startingPosition, lastPosition, tapeHead, finiteControl);
+            // perform computation
+            std::string currentStateAndContent{finiteControl + *tapeHead};
+            // If the key-value pair does not exist, the input crashes the machine, and so we halt
+            if (simulator.transitionFunction.count(currentStateAndContent) == 0)
+                isHalting = true;
+
+            if (!isHalting)
+            {
+                std::string move = simulator.transitionFunction[currentStateAndContent];
+
+                finiteControl = move[0];
+                *tapeHead = move[1];
+                if (move[2] == 'L')
+                {
+                    direction = "L";
+                    tapeHead--;
+                    position--;
+                }
+                else
+                {
+                    direction = "R";
+                    tapeHead++;
+                    position++;
+                }
+            }
+        }
+
+        // Check if I will reach the end of my current size and add one more blank as needed to the back
+        auto oneStepAhead = tapeHead;
+        oneStepAhead++;
+        if (oneStepAhead == trueEnd)
+            simulator.tape.push_back(simulator.blankSymbol);
+
+        // Check if I will reach below the start of my current size and add one more blank as needed to the front
+        auto oneStepBehind = tapeHead;
+        oneStepBehind--;
+        if (oneStepBehind == trueStart)
+            simulator.tape.push_front(simulator.blankSymbol);
+    }
+
+    if (isAccepting && !isHalting)
+    {
+        std::cout << "Your input was: ";
+        std::cout << "\033[32m" << "accepted" << "\033[0m" << std::endl;
+    }
+    else if (!isAccepting && isHalting)
+    {
+        std::cout << "Your input was: ";
+        std::cout << "\033[31m" << "rejected" << "\033[0m" << std::endl;
+    }
 }
