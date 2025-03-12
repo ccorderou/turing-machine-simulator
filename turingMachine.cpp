@@ -37,57 +37,43 @@ bool contains(const std::vector<std::string> container, const std::string &lette
 // helper function to output IDs
 void printInstantaneousDescription(std::list<std::string>::iterator start, std::list<std::string>::iterator end, std::list<std::string>::iterator curr, std::string currentState);
 
+// file reading function that helps us construct a valid Turing Machine
+TuringMachine constructTM(std::ifstream &inputFile, std::string name);
+
+// checks that TuringMachine struct contains only valid information
+bool isValidSimulator(TuringMachine simulator);
+
+// helper function that detects invalid transition functions within my text file
+bool isValidTransitionFunction(std::string currentStateAndSymbol, std::string nextStateAndSymbolAndDirection);
+
 int main()
 {
+
+    bool flag{false};
+    TuringMachine simulator;
     // Prompt user for file name
     std::cout << "Enter a file name: ";
     std::string fileName{};
-    std::getline(std::cin, fileName);
-    // Instantiate file-reading object
-    std::ifstream inputFile(fileName);
-
-    // if the file does not exist, tell the user to try again
-    if (inputFile.fail())
+    do
     {
-        std::cerr << "Invalid file name. Ensure correct spelling and file location." << std::endl;
-        exit(1);
-    }
+        std::getline(std::cin, fileName);
+        // Instantiate file-reading object
+        std::ifstream inputFile(fileName);
 
-    // Each line is either:
-    //  1) blank
-    //  2) a comment indicated by "//"
-    //  3) or a 5-tuple consisting of currentState currentTapeSymbol newState newTapeSymbol direction
-    std::string fileLine{};
-    TuringMachine simulator;
-    bool isFiveTuple{false};
-    while (std::getline(inputFile, fileLine))
-    {
-        // if a line begins with an integer, it must be a transition function
-        if (std::isdigit(fileLine[0]))
-            isFiveTuple = true;
-
-        // currentState currentTapeSymbol newState newTapeSymbol direction
-        if (isFiveTuple)
+        // if the file does not exist, tell the user to try again
+        if (inputFile.fail())
         {
-            if (!contains(simulator.states, std::string(1, fileLine[0])))
-                simulator.states.push_back(std::string(1, fileLine[0]));
-            if (!contains(simulator.tapeSymbols, std::string(1, fileLine[2])))
-                simulator.tapeSymbols.push_back(std::string(1, fileLine[2]));
-
-            std::string stateWithSymbol{};
-            stateWithSymbol += fileLine[0];
-            stateWithSymbol += fileLine[2];
-
-            std::string move{};
-            move += fileLine[4];
-            move += fileLine[6];
-            move += fileLine[8];
-            simulator.transitionFunction[stateWithSymbol] = move;
-
-            // reset isFiveTuple variable
-            isFiveTuple = false;
+            std::cerr << "Invalid file name. Ensure correct spelling and file location." << std::endl;
+            exit(1);
         }
-    }
+
+        simulator = constructTM(inputFile, fileName);
+        if (isValidSimulator(simulator))
+            flag = true;
+        else
+            std::cout << "Invalid content. Enter a valid file: ";
+
+    } while (!flag);
 
     std::cout << "Enter an input word. Must consist of 0s and/or 1s. If you wish to stop the program upon an infinite loop, press Ctrl+C: " << std::endl;
     std::string userInput{};
@@ -317,6 +303,78 @@ void TuringMachine::display()
     {
         std::cout << *it << " ";
     }
+}
+
+TuringMachine constructTM(std::ifstream &inputFile, std::string name)
+{
+    // Each line is either:
+    //  1) blank
+    //  2) a comment indicated by "//"
+    //  3) or a 5-tuple consisting of currentState currentTapeSymbol newState newTapeSymbol direction
+    std::string fileLine{};
+    TuringMachine simulator;
+    bool isFiveTuple{false};
+    while (std::getline(inputFile, fileLine))
+    {
+        // if a line begins with an integer, it must be a transition function
+        if (std::isdigit(fileLine[0]))
+            isFiveTuple = true;
+
+        // currentState currentTapeSymbol newState newTapeSymbol direction
+        if (isFiveTuple)
+        {
+            if (!contains(simulator.states, std::string(1, fileLine[0])))
+                simulator.states.push_back(std::string(1, fileLine[0]));
+            if (!contains(simulator.tapeSymbols, std::string(1, fileLine[2])))
+                simulator.tapeSymbols.push_back(std::string(1, fileLine[2]));
+
+            std::string stateWithSymbol{};
+            stateWithSymbol += fileLine[0];
+            stateWithSymbol += fileLine[2];
+
+            std::string move{};
+            move += fileLine[4];
+            move += fileLine[6];
+            move += fileLine[8];
+            if (isValidTransitionFunction(stateWithSymbol, move))
+                simulator.transitionFunction[stateWithSymbol] = move;
+            else
+                simulator.transitionFunction["invalid"];
+
+            // reset isFiveTuple variable
+            isFiveTuple = false;
+        }
+    }
+
+    return simulator;
+}
+
+bool isValidTransitionFunction(std::string currentStateAndSymbol, std::string nextStateAndSymbolAndDirection)
+{
+
+    for (const auto &letter : currentStateAndSymbol)
+        if (std::isspace(letter))
+            return false;
+
+    for (const auto &letter : nextStateAndSymbolAndDirection)
+        if (std::isspace(letter))
+            return false;
+
+    return true;
+}
+
+bool isValidSimulator(TuringMachine simulator)
+{
+    // if I have an empty state, that means there was a space when there should have been a number
+    for (const auto &state : simulator.states)
+        if (state == "")
+            return false;
+
+    // if I have an invalid transition function, then that means that there was atleast one missing symbol in the file
+    if (simulator.transitionFunction.count("invalid") != 0)
+        return false;
+
+    return true;
 }
 
 void printInstantaneousDescription(std::list<std::string>::iterator start, std::list<std::string>::iterator end, std::list<std::string>::iterator curr, std::string currentState)
