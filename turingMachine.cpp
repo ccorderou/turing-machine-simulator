@@ -84,20 +84,20 @@ int main()
     std::getline(std::cin, userInput);
 
     // if the user inputs nothing, request for something
-    // while (userInput.empty())
-    // {
-    //     std::cout << "Input must only contain 0s and/or 1s: ";
-    //     std::string userInput{};
-    //     // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
-    //     std::getline(std::cin, userInput);
-    // }
+    while (userInput.empty())
+    {
+        std::cout << "Input must only contain 0s and/or 1s: ";
+        std::string userInput{};
+        // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+        std::getline(std::cin, userInput);
+    }
     // if the user inputs an invalid symbol, prompt for a valid input
     bool repromptInput{false};
     for (const auto &letter : userInput)
         if (letter != '0' && letter != '1')
             repromptInput = true;
 
-    // while input is valid, keep reprompting for valid input
+    // while input is invalid, keep reprompting for valid input
     while (repromptInput)
     {
         std::cout << "Input must only contain 0s and/or 1s: ";
@@ -113,36 +113,33 @@ int main()
     std::string blank{"B"};
 
     // An arbitrary amount of blanks placed in the front
-    for (int i{0}; i < 5; i++)
+    for (int i{0}; i < 1; i++)
         simulator.tape.push_back(blank);
 
-    // An arbitrary amount of blanks placed in between the blanks
-    if (!userInput.empty())
-    {
-        for (const auto &letter : userInput)
-            simulator.tape.push_back(std::string(1, letter));
-    }
+    // Input string
+    for (const auto &letter : userInput)
+        simulator.tape.push_back(std::string(1, letter));
 
     // An arbitrary amount of blanks placed in the back
-    for (int i{0}; i < 5; i++)
+    for (int i{0}; i < 1; i++)
         simulator.tape.push_back(blank);
 
     // The finite control will begin at the start of the tape
-    auto finiteControl = simulator.tape.begin();
+    auto tapeHead = simulator.tape.begin();
 
     // We will readjust it so that it points to the first input seen
-    while (*finiteControl == "B")
-        finiteControl++;
+    while (*tapeHead == "B")
+        tapeHead++;
 
     // currentState will always be q0, so 0 represents that state
-    std::string currentState{"0"};
+    std::string finiteControl{"0"};
     // we declare isAccepting & isHalting to be false initially for we do not know if our inputs will accept, reject, or loop infinitely
     bool isAccepting{false};
     bool isHalting{false};
 
     // the finite control will begin at the first input, so we start there
-    auto startingPosition = finiteControl;
-    auto lastPosition = finiteControl;
+    auto startingPosition = tapeHead;
+    auto lastPosition = tapeHead;
 
     // our last position will be whenever we see the next blank symbol
     // this means we begin on the first input symbol and end upon the viewing the first blank symbol
@@ -183,13 +180,13 @@ int main()
             inTheNegatives = false;
         }
         // if the finiteControl points to same cell, then testLast increments by one for printing purposes
-        if (lastPosition == finiteControl)
+        if (lastPosition == tapeHead)
         {
             lastPosition++;
             readjustAmountBack++;
         }
         // My finiteControl moved back once and so I readjust accordingly
-        else if (lastPosition != finiteControl && readjustAmountBack != 0)
+        else if (lastPosition != tapeHead && readjustAmountBack != 0)
         {
             lastPosition--;
             readjustAmountBack--;
@@ -197,18 +194,18 @@ int main()
 
         // Check if already in accepting state initially,
         // if not, compute compute and then re-evaluate upon completion of said computation
-        if (currentState == "f")
+        if (finiteControl == "f")
         {
             isAccepting = true;
             // print the ID
-            printInstantaneousDescription(startingPosition, lastPosition, finiteControl, currentState);
+            printInstantaneousDescription(startingPosition, lastPosition, tapeHead, finiteControl);
         }
         else
         {
             // print the ID
-            printInstantaneousDescription(startingPosition, lastPosition, finiteControl, currentState);
+            printInstantaneousDescription(startingPosition, lastPosition, tapeHead, finiteControl);
             // perform computation
-            std::string currentStateAndContent{currentState + *finiteControl};
+            std::string currentStateAndContent{finiteControl + *tapeHead};
             // If the key-value pair does not exist, the input crashes the machine, and so we halt
             if (simulator.transitionFunction.count(currentStateAndContent) == 0)
                 isHalting = true;
@@ -217,31 +214,31 @@ int main()
             {
                 std::string move = simulator.transitionFunction[currentStateAndContent];
 
-                currentState = move[0];
-                *finiteControl = move[1];
+                finiteControl = move[0];
+                *tapeHead = move[1];
                 if (move[2] == 'L')
                 {
                     direction = "L";
-                    finiteControl--;
+                    tapeHead--;
                     position--;
                 }
                 else
                 {
                     direction = "R";
-                    finiteControl++;
+                    tapeHead++;
                     position++;
                 }
             }
         }
 
         // Check if I will reach the end of my current size and add one more blank as needed to the back
-        auto oneStepAhead = finiteControl;
+        auto oneStepAhead = tapeHead;
         oneStepAhead++;
         if (oneStepAhead == trueEnd)
             simulator.tape.push_back(blank);
 
         // Check if I will reach below the start of my current size and add one more blank as needed to the front
-        auto oneStepBehind = finiteControl;
+        auto oneStepBehind = tapeHead;
         oneStepBehind--;
         if (oneStepBehind == trueStart)
             simulator.tape.push_front(blank);
