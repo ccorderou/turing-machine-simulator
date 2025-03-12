@@ -74,7 +74,16 @@ int main()
         if (isValidSimulator(simulator))
             flag = true;
         else
-            std::cout << "Invalid content. Enter a valid file: ";
+        {
+            std::cout << "Invalid content. Ensure each line in the file is either: "
+                      << "\n"
+                      << "1) blank" << "\n"
+                      << "2) a comment indicated by \"//\""
+                      << "\n"
+                      << "3) or a 5-tuple consisting of currentState currentTapeSymbol newState newTapeSymbol direction"
+                      << "\n"
+                      << "Enter a valid file: ";
+        }
 
     } while (!flag);
 
@@ -389,15 +398,23 @@ void runSimulation(TuringMachine simulator)
             }
         }
 
-        // Check if I will reach the end of my current size and add one more blank as needed to the back
+        /*
+        Check one cell ahead. If the cell to be stepped into is located in the same location in memory as end, then
+        we must add a blank. The end of the tape is pointing to one position in memory after the last element.
+        This means I will attempt to access invalid memory if I am on it. So, this is a safeguard so that my tape
+        grows dynamically as needed.
+        */
         auto oneStepAhead = tapeHead;
         oneStepAhead++;
         if (oneStepAhead == trueEnd)
             simulator.tape.push_back(simulator.blankSymbol);
 
-        // Check if I will reach below the start of my current size and add one more blank as needed to the front
+        /*
+        Check if my tapeHead is located at the same location in memory as my tape's beginning. If this is the case,
+        then I will add a blank before it to ensure that no invalid memory is accessed. Thus, I safely ensure
+        the expansion of my tape as needed
+        */
         auto oneStepBehind = tapeHead;
-        oneStepBehind--;
         if (oneStepBehind == trueStart)
             simulator.tape.push_front(simulator.blankSymbol);
     }
