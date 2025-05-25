@@ -1,3 +1,10 @@
+/*
+Name: Chris Cordero Urgiles
+Professor: Eric Schweitzer
+Course: Computer Theory II (CSCI365)
+Description: Turing Machine Simulator
+*/
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -8,15 +15,15 @@
 
 /*
 A Turing Machine struct with the following data structures that represent their respective role in the 7-tuple:
-    std::vector<std::string> states representing the set of states of the finite control
-    std::string inputSymbols[2] that representing the infinite set of input symbols. In our case, 0 and 1.
-    std::vector<std::string> tapeSymbols representing the set of tape symbols.
-    std::unordered_map<std::string, std::string> transitionFunction representing the transition function.
-    std::string startState = "q0" representing the start state.
-    std::string blankSymbol = "B" representing the blank symbol.
-    std::string acceptingStates = "f" representing the set of accepting states. In our case, just f.
-    std::list<std::string> tape representing the tape itself.
- */
+std::vector<std::string> states representing the set of states of the finite control
+std::string inputSymbols[2] that representing the infinite set of input symbols. In our case, 0 and 1.
+std::vector<std::string> tapeSymbols representing the set of tape symbols.
+std::unordered_map<std::string, std::string> transitionFunction representing the transition function.
+std::string startState = "q0" representing the start state.
+std::string blankSymbol = "B" representing the blank symbol.
+std::string acceptingStates = "f" representing the set of accepting states. In our case, just f.
+std::list<std::string> tape representing the tape itself.
+*/
 struct TuringMachine
 {
     std::vector<std::string> states{"f"};
@@ -150,9 +157,9 @@ void TuringMachine::display()
 TuringMachine constructTM(std::ifstream &inputFile, std::string name)
 {
     // Each line is either:
-    //  1) blank
-    //  2) a comment indicated by "//"
-    //  3) or a 5-tuple consisting of currentState currentTapeSymbol newState newTapeSymbol direction
+    // 1) blank
+    // 2) a comment indicated by "//"
+    // 3) or a 5-tuple consisting of currentState currentTapeSymbol newState newTapeSymbol direction
     std::string fileLine{};
     TuringMachine simulator;
     bool isFiveTuple{false};
@@ -264,44 +271,42 @@ void printInstantaneousDescription(std::list<std::string>::iterator start, std::
 
 void runSimulation(TuringMachine simulator)
 {
-    std::cout << "Enter an input word.\nMust consist of 0s and/or 1s.\nPress Ctrl+C to exit the program anytime: ";
+    std::cout << "Enter an input word.\nMust consist of 0s and/or 1s or none.\nPress Ctrl+C to exit the program anytime: ";
     std::string userInput{};
     // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
     std::getline(std::cin, userInput);
 
+    bool isEmpty{false};
     if (userInput.empty())
     {
-        bool isNonEmpty{false};
-        while (!isNonEmpty)
-        {
-            std::cout << "No word detected. Re-enter a valid input word: ";
-            // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
-            std::getline(std::cin, userInput);
-            if (!userInput.empty())
-                isNonEmpty = true;
-        }
+        userInput = "B";
+        isEmpty = true;
     }
-    // if the user inputs an invalid symbol, prompt for a valid input
-    bool repromptInput{false};
-    for (const auto &letter : userInput)
-        if (letter != '0' && letter != '1')
-            repromptInput = true;
 
-    // while input is invalid, keep reprompting for valid input
-    if (repromptInput)
+    if (!isEmpty)
     {
-        std::string validInput = "";
-        while (repromptInput)
+        // if the user inputs an invalid symbol, prompt for a valid input
+        bool repromptInput{false};
+        for (const auto &letter : userInput)
+            if (letter != '0' && letter != '1')
+                repromptInput = true;
+
+        // while input is invalid, keep reprompting for valid input
+        if (repromptInput)
         {
-            std::cout << "Invalid symbols detected. Re-enter a valid input word: ";
-            // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
-            std::getline(std::cin, validInput);
-            repromptInput = false;
-            for (const auto &letter : validInput)
-                if (letter != '0' && letter != '1')
-                    repromptInput = true;
+            std::string validInput = "";
+            while (repromptInput)
+            {
+                std::cout << "Invalid symbols detected. Re-enter a valid input word: ";
+                // Use getline to avoid potential cin issues with '\n' when pressing 'Enter' if prompted once more in the future.
+                std::getline(std::cin, validInput);
+                repromptInput = false;
+                for (const auto &letter : validInput)
+                    if (letter != '0' && letter != '1')
+                        repromptInput = true;
+            }
+            userInput = validInput;
         }
-        userInput = validInput;
     }
 
     // An arbitrary amount of blanks placed in the front
@@ -318,9 +323,13 @@ void runSimulation(TuringMachine simulator)
 
     // The finite control will begin at the start of the tape
     auto tapeHead = simulator.tape.begin();
-
-    // We will readjust it so that it points to the first input seen
-    while (*tapeHead == "B")
+    if (!isEmpty)
+    {
+        // We will readjust it so that it points to the first input seen
+        while (*tapeHead == "B")
+            tapeHead++;
+    }
+    else
         tapeHead++;
 
     // currentState will always be q0, so 0 represents that state
@@ -335,8 +344,16 @@ void runSimulation(TuringMachine simulator)
 
     // our last position will be whenever we see the next blank symbol
     // this means we begin on the first input symbol and end upon the viewing the first blank symbol
-    while (*lastPosition != "B")
-        lastPosition++;
+    if (!isEmpty)
+    {
+        while (*lastPosition != "B")
+            lastPosition++;
+    }
+    else
+    {
+        lastPosition = simulator.tape.end();
+        lastPosition--;
+    }
 
     // When printing, we would need to adjust our lastPosition according to the input size, and if the
     // read/write head surpressses that length, we need to print that as well
